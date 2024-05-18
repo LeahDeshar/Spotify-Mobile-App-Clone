@@ -30,21 +30,44 @@ const LoginScreen = () => {
   }, []);
 
   async function authenticate() {
-    const config = {
-      issuer: "https://accounts.spotify.com",
-      clientId: "b1e7b57b2df64e589a4df4a1c59135dd",
-      scopes: [
-        "user-read-email",
-        "user-library-read",
-        "user-read-recently-played",
-        "user-top-read",
-        "playlist-read-private",
-        "playlist-read-collaborative",
-        "playlist-modify-public",
-      ],
-      redirectUrl: "exp://192.168.1.4:8081/--/spotify-auth-callback",
+    const discovery = {
+      authorizationEndpoint: "https://accounts.spotify.com/authorize",
+      tokenEndpoint: "https://accounts.spotify.com/api/token",
     };
-    const result = await AppAuth.authAsync(config);
+    const [request, response, promptAsync] = useAuthRequest(
+      {
+        clientId: "b1e7b57b2df64e589a4df4a1c59135dd",
+        scopes: [
+          "user-read-email",
+          "user-library-read",
+          "user-read-recently-played",
+          "user-top-read",
+          "playlist-read-private",
+          "playlist-read-collaborative",
+          "playlist-modify-public",
+        ],
+        usePKCE: false,
+        redirectUri: makeRedirectUri({
+          scheme: "exp://192.168.1.4:8081/--/spotify-auth-callback",
+        }),
+      },
+      discovery
+    );
+    // const config = {
+    //   issuer: "https://accounts.spotify.com",
+    //   clientId: "b1e7b57b2df64e589a4df4a1c59135dd",
+    //   scopes: [
+    //     "user-read-email",
+    //     "user-library-read",
+    //     "user-read-recently-played",
+    //     "user-top-read",
+    //     "playlist-read-private",
+    //     "playlist-read-collaborative",
+    //     "playlist-modify-public",
+    //   ],
+    //   redirectUrl: "exp://192.168.1.4:8081/--/spotify-auth-callback",
+    // };
+    // const result = await AppAuth.authAsync(config);
     console.log(result);
     if (result.accessToken) {
       const expirationDate = new Date(
