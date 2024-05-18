@@ -1,10 +1,34 @@
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign, Entypo, MaterialIcons } from "@expo/vector-icons";
 import * as AppAuth from "expo-auth-session";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 const LoginScreen = () => {
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const checkTokenValidity = async () => {
+      const token = await AsyncStorage.getItem("token");
+      const expirationDate = await AsyncStorage.getItem("expirationDate");
+      if (token && expirationDate) {
+        const currentTime = Date.now();
+        if (currentTime < parseInt(expirationDate)) {
+          navigation.replace("Main");
+        } else {
+          AsyncStorage.removeItem("token");
+          AsyncStorage.removeItem("expirationDate");
+        }
+      } else {
+        console.log("No token found");
+      }
+    };
+
+    checkTokenValidity();
+  }, []);
+
   async function authenticate() {
     const config = {
       issuer: "https://accounts.spotify.com",
@@ -20,7 +44,16 @@ const LoginScreen = () => {
       ],
       redirectUrl: "exp://192.168.1.4:8081/--/spotify-auth-callback",
     };
-    const result = await AppAuth.authA;
+    const result = await AppAuth.authAsync(config);
+    console.log(result);
+    if (result.accessToken) {
+      const expirationDate = new Date(
+        result.accessTokenExpirationDate
+      ).getTime();
+      AsyncStorage.setItem("token", result.accessToken);
+      AsyncStorage.setItem("expirationDate", expirationDate.toString());
+      navigation.navigate("Main");
+    }
   }
   return (
     <LinearGradient colors={["#040306", "#131624"]} style={{ flex: 1 }}>
