@@ -3,11 +3,25 @@ import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign, Entypo, MaterialIcons } from "@expo/vector-icons";
-
+import * as AppAuth from "expo-auth-session";
 const LoginScreen = () => {
-  const authenticate = () => {
-    console.log("authenticate");
-  };
+  async function authenticate() {
+    const config = {
+      issuer: "https://accounts.spotify.com",
+      clientId: "b1e7b57b2df64e589a4df4a1c59135dd",
+      scopes: [
+        "user-read-email",
+        "user-library-read",
+        "user-read-recently-played",
+        "user-top-read",
+        "playlist-read-private",
+        "playlist-read-collaborative",
+        "playlist-modify-public",
+      ],
+      redirectUrl: "exp://192.168.1.4:8081/--/spotify-auth-callback",
+    };
+    const result = await AppAuth.authA;
+  }
   return (
     <LinearGradient colors={["#040306", "#131624"]} style={{ flex: 1 }}>
       <SafeAreaView>
