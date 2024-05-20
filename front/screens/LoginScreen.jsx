@@ -8,18 +8,41 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 const LoginScreen = () => {
   const navigation = useNavigation();
+  const [request, response, promptAsync] = AppAuth.useAuthRequest(
+    {
+      clientId: "b1e7b57b2df64e589a4df4a1c59135dd",
+      scopes: [
+        "user-read-email",
+        "user-library-read",
+        "user-read-recently-played",
+        "user-top-read",
+        "playlist-read-private",
+        "playlist-read-collaborative",
+        "playlist-modify-public",
+      ],
+      redirectUri: AppAuth.makeRedirectUri({
+        scheme: "exp://localhost:8081/--/spotify-auth-callback",
+        // scheme: "exp://localhost:8081/spotify-auth-callback",
+      }),
+    },
+    {
+      authorizationEndpoint: "https://accounts.spotify.com/authorize",
+      tokenEndpoint: "https://accounts.spotify.com/api/token",
+    }
+  );
 
   useEffect(() => {
     const checkTokenValidity = async () => {
       const token = await AsyncStorage.getItem("token");
       const expirationDate = await AsyncStorage.getItem("expirationDate");
+      console.log("token", token);
       if (token && expirationDate) {
         const currentTime = Date.now();
         if (currentTime < parseInt(expirationDate)) {
           navigation.replace("Main");
         } else {
-          AsyncStorage.removeItem("token");
-          AsyncStorage.removeItem("expirationDate");
+          await AsyncStorage.removeItem("token");
+          await AsyncStorage.removeItem("expirationDate");
         }
       } else {
         console.log("No token found");
@@ -29,55 +52,16 @@ const LoginScreen = () => {
     checkTokenValidity();
   }, []);
 
-  async function authenticate() {
-    const discovery = {
-      authorizationEndpoint: "https://accounts.spotify.com/authorize",
-      tokenEndpoint: "https://accounts.spotify.com/api/token",
-    };
-    const [request, response, promptAsync] = useAuthRequest(
-      {
-        clientId: "b1e7b57b2df64e589a4df4a1c59135dd",
-        scopes: [
-          "user-read-email",
-          "user-library-read",
-          "user-read-recently-played",
-          "user-top-read",
-          "playlist-read-private",
-          "playlist-read-collaborative",
-          "playlist-modify-public",
-        ],
-        usePKCE: false,
-        redirectUri: makeRedirectUri({
-          scheme: "exp://192.168.1.4:8081/--/spotify-auth-callback",
-        }),
-      },
-      discovery
-    );
-    // const config = {
-    //   issuer: "https://accounts.spotify.com",
-    //   clientId: "b1e7b57b2df64e589a4df4a1c59135dd",
-    //   scopes: [
-    //     "user-read-email",
-    //     "user-library-read",
-    //     "user-read-recently-played",
-    //     "user-top-read",
-    //     "playlist-read-private",
-    //     "playlist-read-collaborative",
-    //     "playlist-modify-public",
-    //   ],
-    //   redirectUrl: "exp://192.168.1.4:8081/--/spotify-auth-callback",
-    // };
-    // const result = await AppAuth.authAsync(config);
-    console.log(result);
-    if (result.accessToken) {
-      const expirationDate = new Date(
-        result.accessTokenExpirationDate
-      ).getTime();
-      AsyncStorage.setItem("token", result.accessToken);
+  useEffect(() => {
+    console.log(response);
+    if (response?.type === "success") {
+      const { access_token, expires_in } = response.params;
+      const expirationDate = new Date(Date.now() + expires_in * 1000).getTime();
+      AsyncStorage.setItem("token", access_token);
       AsyncStorage.setItem("expirationDate", expirationDate.toString());
       navigation.navigate("Main");
     }
-  }
+  }, [response]);
   return (
     <LinearGradient colors={["#040306", "#131624"]} style={{ flex: 1 }}>
       <SafeAreaView>
@@ -103,7 +87,7 @@ const LoginScreen = () => {
 
         <View style={{ height: 80 }} />
         <Pressable
-          onPress={authenticate}
+          onPress={() => promptAsync()}
           style={{
             backgroundColor: "#1DB954",
             padding: 10,
