@@ -6,11 +6,12 @@ import { AntDesign, Entypo, MaterialIcons } from "@expo/vector-icons";
 import * as AppAuth from "expo-auth-session";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
+import { makeRedirectUri, useAuthRequest } from "expo-auth-session";
 const LoginScreen = () => {
   const navigation = useNavigation();
-  const [request, response, promptAsync] = AppAuth.useAuthRequest(
+  const [request, response, promptAsync] = useAuthRequest(
     {
-      clientId: "b1e7b57b2df64e589a4df4a1c59135dd",
+      clientId: "e15547e141974745b2479c4c84283b0d",
       scopes: [
         "user-read-email",
         "user-library-read",
@@ -20,8 +21,10 @@ const LoginScreen = () => {
         "playlist-read-collaborative",
         "playlist-modify-public",
       ],
-      redirectUri: AppAuth.makeRedirectUri({
-        scheme: "exp://localhost:8081/--/spotify-auth-callback",
+      usePKCE: false,
+
+      redirectUri: makeRedirectUri({
+        scheme: "exp://localhost:19002/--/spotify-auth-callback",
         // scheme: "exp://localhost:8081/spotify-auth-callback",
       }),
     },

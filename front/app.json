@@ -7,7 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
 
-    "scheme": "exp://localhost:8081/--/spotify-auth-callback",
+    "scheme": "exp://localhost:19002/--/spotify-auth-callback",
 
     "splash": {
       "image": "./assets/splash.png",
